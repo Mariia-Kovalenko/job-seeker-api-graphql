@@ -9,8 +9,6 @@ async function startServer() {
   await connectDB(); // Ensure DB connection before starting server
   const app = express();
   app.use(cors());
-  console.log("TypeDefs:", typeDefs);
-  console.log("Resolvers:", resolvers);
    // Build schema from merged typeDefs
    const schema = makeExecutableSchema({ typeDefs, resolvers });
   app.use('/', graphqlHTTP({ schema, rootValue: resolvers, graphiql: true }));
