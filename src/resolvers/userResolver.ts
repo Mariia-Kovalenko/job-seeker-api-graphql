@@ -45,6 +45,7 @@ export const userResolver = {
 
             // create and assign token
             const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            console.log('created token', token);
             try {
                 const updatedUser = await UserModel.findByIdAndUpdate(user._id, {token: token});
                 if (!updatedUser) {

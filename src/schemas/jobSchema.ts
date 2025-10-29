@@ -10,6 +10,7 @@ export const jobTypeDef = `
     stack: [String]
     createdAt: String
     updatedAt: String
+    postedBy: User!
   }
   
   type Query {
