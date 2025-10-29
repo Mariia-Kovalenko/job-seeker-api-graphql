@@ -13,8 +13,23 @@ export const jobTypeDef = `
     postedBy: User!
   }
   
+  type JobConnection {
+    edges: [JobEdge]!
+    pageInfo: PageInfo!
+  }
+
+  type JobEdge {
+    cursor: String!
+    node: Job!
+  }
+
+  type PageInfo {
+    endCursor: String
+    hasNextPage: Boolean
+  }
+
   type Query {
-    jobs: [Job]
+    jobs(first: Int, after: String): JobConnection
     job(_id: ID!): Job
   }
 

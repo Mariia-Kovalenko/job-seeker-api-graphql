@@ -12,7 +12,26 @@ type Job = {
 };
 export const jobResolver = {
     Query: {
-        jobs: async () => JobModel.find(),
+        jobs: async (_: any, { first = 10, after }: { first: number, after: string }) => {
+            const query = after ? { _id: { $gt: after } } : {};
+            const jobs = await JobModel.find(query).sort({ _id: 1 }).limit(first + 1);
+
+            const edges = jobs.map(job => ({
+              cursor: job._id,
+              node: job
+            }));
+
+            const hasNextPage = jobs.length > first;
+            const endCursor = hasNextPage && jobs[first] ? jobs[first]._id : null;
+
+            return {
+              edges: hasNextPage ? edges.slice(0, -1) : edges,
+              pageInfo: {
+                endCursor,
+                hasNextPage,
+              },
+            };
+          },
         job: async (_: any, { _id }: { _id: string }) => JobModel.findById(_id),
     },
     Mutation: {
