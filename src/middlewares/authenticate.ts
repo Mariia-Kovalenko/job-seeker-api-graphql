@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 const jwt = require('jsonwebtoken');
 import UserModel from '../models/User';
+import { User } from '../types';
 
 declare module 'express-serve-static-core' {
     interface Request {
-      user?: any; // TODO: replace any with a specific type
+      user?: User | null; // Specify User type
     }
 }  
 

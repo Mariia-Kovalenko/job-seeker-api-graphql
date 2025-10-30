@@ -12,7 +12,10 @@ type Job = {
 };
 export const jobResolver = {
     Query: {
+      // first - number of jobs to return per page
+      // after - cursor to the next page
         jobs: async (_: any, { first = 10, after }: { first: number, after: string }) => {
+            // if after is provided, query the jobs with _id greater than after
             const query = after ? { _id: { $gt: after } } : {};
             const jobs = await JobModel.find(query).sort({ _id: 1 }).limit(first + 1);
 

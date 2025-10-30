@@ -5,12 +5,14 @@ import { connectDB } from './db/connection';
 const cors = require('cors');
 import { typeDefs, resolvers } from './schemas'; 
 import authenticate from './middlewares/authenticate';
+import { User } from './types';
 
 
 async function startServer() {
   await connectDB(); // Ensure DB connection before starting server
   const app = express();
   app.use(cors());
+  // use authenticate middleware to authenticate the user
   app.use(authenticate);
   const schema = makeExecutableSchema({ typeDefs, resolvers });
   app.use('/', graphqlHTTP((req: any) => {
@@ -18,13 +20,13 @@ async function startServer() {
     return { 
       schema, 
       rootValue: resolvers, 
-      graphiql: true ,
+      graphiql: true,
       context: {
-        user: req?.user
+        user: req.user as User
       }
     }
   }));
-  const PORT = process.env.PORT || 4002;
+  const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`🚀 Express GraphQL server running at http://localhost:${PORT}`);
   });
