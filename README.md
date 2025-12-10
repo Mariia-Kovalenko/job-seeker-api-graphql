@@ -42,6 +42,36 @@ This project is a NodeJS API built using Express, MongoDB, and GraphQL. It's des
 
 The server will run at `http://localhost:4000`.
 
+### Rebuild and Redeploy with Docker
+
+To update the Docker image and redeploy:
+
+1. **Rebuild the Docker Image**
+   
+   Execute the following command to rebuild the Docker image:
+   
+   ```bash
+   docker build -t mariiatanchuk/jobs-api:latest .
+   ```
+
+2. **Push the Updated Image to Docker Hub**
+   
+   Make sure you are logged in to Docker Hub, then push the image:
+   
+   ```bash
+   docker login
+   docker push mariiatanchuk/jobs-api:latest
+   ```
+
+3. **Deploy the Updated Image**
+   
+   If you're using a service like Render or AWS:
+   - Navigate to your dashboard.
+   - Update the service to use the latest image tag.
+   - Follow your platform's deployment procedure to apply changes.
+
+These steps ensure your application is consistently up to date across all environments.
+
 ## API Endpoints
 
 ### GraphQL

@@ -8,6 +8,8 @@ export const jobTypeDef = `
     location: String
     salaryRange: String
     stack: [String]
+    category: [String]!
+    workType: String
     createdAt: String
     updatedAt: String
     postedBy: User!
@@ -29,13 +31,13 @@ export const jobTypeDef = `
   }
 
   type Query {
-    jobs(first: Int, after: String): JobConnection
+    jobs(search: String, location: String, workType: String, categories: [String], first: Int, after: String): JobConnection
     job(_id: ID!): Job
   }
 
   type Mutation {
-    addJob(title: String!, shortDescription: String, description: String!, company: String!, location: String, salaryRange: String, stack: [String]): Job
-    updateJob(_id: ID!, title: String, shortDescription: String, description: String, company: String, location: String, salaryRange: String, stack: [String]): Job
+    addJob(title: String!, shortDescription: String, description: String!, company: String!, location: String, salaryRange: String, stack: [String], category: [String]!, workType: String!): Job
+    updateJob(_id: ID!, title: String, shortDescription: String, description: String, company: String, location: String, salaryRange: String, stack: [String], category: [String], workType: String): Job
     deleteJob(id: ID!): Job
   }
 `;

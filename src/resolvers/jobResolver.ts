@@ -10,40 +10,88 @@ type Job = {
     salaryRange: string;
     stack: string[];
 };
+
+type JobInput = {
+    title: string;
+    shortDescription?: string;
+    description: string;
+    company: string;
+    location?: string;
+    salaryRange?: string;
+    stack?: string[];
+    category: string[]; // Updated to array
+    workType: "Remote" | "In Office";
+};
+
 export const jobResolver = {
     Query: {
-      // first - number of jobs to return per page
-      // after - cursor to the next page
-        jobs: async (_: any, { first = 10, after }: { first: number, after: string }) => {
-            // if after is provided, query the jobs with _id greater than after
-            const query = after ? { _id: { $gt: after } } : {};
-            const jobs = await JobModel.find(query).sort({ _id: 1 }).limit(first + 1);
+        // first - number of jobs to return per page
+        // after - cursor to the next page
+        jobs: async (
+            _: any,
+            { search = '', location = '', workType, categories = [], first = 10, after }:
+            { search: string, location: string, workType?: string, categories: string[], first: number, after: string }
+        ) => {
+            const query: any = {};
 
-            const edges = jobs.map(job => ({
-              cursor: job._id,
-              node: job
+            // Search by position title or description
+            if (search) {
+                query.$or = [
+                    { title: { $regex: search, $options: 'i' } },
+                    { description: { $regex: search, $options: 'i' } }
+                ];
+            }
+
+            // Filter by location
+            if (location) {
+                query.location = { $regex: location, $options: 'i' };
+            }
+
+            // Filter by workType
+            if (workType) {
+                query.workType = { $regex: workType, $options: 'i' };
+            }
+
+            // Filter by categories
+            if (categories.length > 0) {
+                query.category = { $in: categories.map(cat => new RegExp(cat, 'i')) };
+            }
+
+            // Cursor-based pagination
+            if (after) {
+                query._id = { $gt: after };
+            }
+
+            const jobs = await JobModel.find(query)
+                .sort({ _id: 1 })
+                .limit(first + 1);
+
+            const edges = jobs.map((job) => ({
+                cursor: job._id,
+                node: job,
             }));
 
             const hasNextPage = jobs.length > first;
-            const endCursor = hasNextPage && jobs[first] ? jobs[first]._id : null;
+            const endCursor =
+                hasNextPage && jobs[first] ? jobs[first]._id : null;
 
             return {
-              edges: hasNextPage ? edges.slice(0, -1) : edges,
-              pageInfo: {
-                endCursor,
-                hasNextPage,
-              },
+                edges: hasNextPage ? edges.slice(0, -1) : edges,
+                pageInfo: {
+                    endCursor,
+                    hasNextPage,
+                },
             };
-          },
+        },
         job: async (_: any, { _id }: { _id: string }) => JobModel.findById(_id),
     },
     Mutation: {
-      // parameters are: (parent, args, context)
-      // parent is the parent of the field
-      // args are the arguments passed to the field
-      // context is the context object
+        // parameters are: (parent, args, context)
+        // parent is the parent of the field
+        // args are the arguments passed to the field
+        // context is the context object
         addJob: async (
-            _: any, // _ is the parent of the field
+            _: any,
             {
                 title,
                 shortDescription,
@@ -52,14 +100,16 @@ export const jobResolver = {
                 location,
                 salaryRange,
                 stack,
-            }: Job,
-            { user }: { user: any }  // user is retrieved from the context in the index.ts file
+                category,
+                workType,
+            }: JobInput,
+            { user }: { user: any }
         ) => {
-           
             if (!user) {
-                throw new Error("User not authenticated"); // if user is not authenticated, throw an error
+                throw new Error("User not authenticated");
             }
-            return JobModel.create({
+            console.log('user in addJob resolver', user);
+            const newJob = await JobModel.create({
                 title,
                 shortDescription,
                 description,
@@ -67,25 +117,58 @@ export const jobResolver = {
                 location,
                 salaryRange,
                 stack,
+                category,
+                workType,
                 posted_by: user.id,
             });
+
+            console.log('newJob in addJob resolver', newJob);
+            return newJob;
         },
 
-        updateJob: async (_: any, { _id, ...updateFields }: { _id: string, updateFields: any }, { user }: { user: any }) => {
-          if (!user) {
-            throw new Error("User not authenticated");
-          }
-          const job = await JobModel.findById(_id);
-          if (!job) {
-            throw new Error("Job not found");
-          }
-          if (job.posted_by.toString() !== user.id) {
-            throw new Error("You are not authorized to update this job");
-          }
-          return JobModel.findByIdAndUpdate(_id, updateFields, { new: true });  
+        updateJob: async (
+            _: any,
+            {
+                _id,
+                title,
+                shortDescription,
+                description,
+                company,
+                location,
+                salaryRange,
+                stack,
+                category,
+                workType,
+            }: Partial<JobInput> & { _id: string },
+            { user }: { user: any }
+        ) => {
+            if (!user) {
+                throw new Error("User not authenticated");
+            }
+            const updatedJob = await JobModel.findByIdAndUpdate(
+                _id,
+                {
+                    title,
+                    shortDescription,
+                    description,
+                    company,
+                    location,
+                    salaryRange,
+                    stack,
+                    category,
+                    workType,
+                    posted_by: user.id,
+                },
+                { new: true }
+            );
+            return updatedJob;
         },
 
-        deleteJob: async (_: any, { id }: { id: string }, { user }: { user: any }) => {
+        deleteJob: async (
+            _: any,
+            { id }: { id: string },
+            { user }: { user: any }
+        ) => {
             if (!user) {
                 throw new Error("User not authenticated");
             }
