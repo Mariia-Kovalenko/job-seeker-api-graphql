@@ -4,12 +4,14 @@ export const userTypeDef = `
     email: String!
     password: String!
     token: String
+    companyName: String!
   }
 
   type AuthPayload {
     email: String!
+    companyName: String!
     jwt_token: String!
-}
+  }
 
   type Query {
     users: [User]
@@ -17,7 +19,9 @@ export const userTypeDef = `
   }
 
   type Mutation {
-    createUser(email: String!, password: String!): User
+    createUser(email: String!, password: String!, companyName: String!): AuthPayload
+    googleLogin(token: String!): AuthPayload
+    googleRegister(email: String!, companyName: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload
   }
 `;

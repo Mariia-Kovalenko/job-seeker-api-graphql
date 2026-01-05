@@ -8,11 +8,15 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
+        required: false
     },
     token: {
         type: String,
         required: false
+    },
+    companyName: {
+        type: String,
+        required: true
     }
 });
 
