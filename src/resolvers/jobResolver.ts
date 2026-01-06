@@ -34,6 +34,8 @@ export const jobResolver = {
         ) => {
             const query: any = {};
 
+            console.log('query in jobs resolver', location, workType, categories, search);
+
             // Search by position title or description
             if (search) {
                 query.$or = [
@@ -48,6 +50,9 @@ export const jobResolver = {
             }
 
             // Filter by workType
+            if (workType && workType.toLowerCase() == 'any') {
+                workType = '';
+            } 
             if (workType) {
                 query.workType = { $regex: workType, $options: 'i' };
             }
