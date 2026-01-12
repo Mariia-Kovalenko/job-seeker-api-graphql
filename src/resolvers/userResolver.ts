@@ -94,7 +94,7 @@ export const userResolver = {
 
             const jwt_token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '2h' });
             try {
-                const updatedUser = await UserModel.findByIdAndUpdate(user._id, {token: token});
+                const updatedUser = await UserModel.findByIdAndUpdate(user._id, {token: jwt_token});
                 if (!updatedUser) {
                     throw new Error('User not found!');
                 }

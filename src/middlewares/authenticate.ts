@@ -32,7 +32,7 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
             return res.status(400).json({ message: 'User logged out' });
         }
         // console.log('found user in authenticate middleware', foundUser);
-        console.log('compared token', foundUser.token, token);
+        console.log('compared token', foundUser.token, 'with', token);
 
         req.user = verified;
 

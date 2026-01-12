@@ -33,6 +33,7 @@ export const jobTypeDef = `
   type Query {
     jobs(search: String, location: String, workType: String, categories: [String], first: Int, after: String): JobConnection
     job(_id: ID!): Job
+    jobsByUser(first: Int, after: String): JobConnection
   }
 
   type Mutation {

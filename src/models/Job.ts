@@ -35,7 +35,7 @@ const jobSchema = new mongoose.Schema({
     },
     workType: {
         type: String,
-        enum: ['Remote', 'In Office'],
+        enum: ['remote', 'in house', 'hybrid'],
         required: true
     },
     posted_by: {

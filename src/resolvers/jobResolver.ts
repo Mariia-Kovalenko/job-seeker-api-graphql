@@ -1,4 +1,5 @@
 import JobModel from "../models/Job";
+const jwt = require("jsonwebtoken");
 
 type Job = {
     _id: string;
@@ -29,37 +30,58 @@ export const jobResolver = {
         // after - cursor to the next page
         jobs: async (
             _: any,
-            { search = '', location = '', workType, categories = [], first = 10, after }:
-            { search: string, location: string, workType?: string, categories: string[], first: number, after: string }
+            {
+                search = "",
+                location = "",
+                workType,
+                categories = [],
+                first = 10,
+                after,
+            }: {
+                search: string;
+                location: string;
+                workType?: string;
+                categories: string[];
+                first: number;
+                after: string;
+            }
         ) => {
             const query: any = {};
 
-            console.log('query in jobs resolver', location, workType, categories, search);
+            console.log(
+                "query in jobs resolver",
+                location,
+                workType,
+                categories,
+                search
+            );
 
             // Search by position title or description
             if (search) {
                 query.$or = [
-                    { title: { $regex: search, $options: 'i' } },
-                    { description: { $regex: search, $options: 'i' } }
+                    { title: { $regex: search, $options: "i" } },
+                    { description: { $regex: search, $options: "i" } },
                 ];
             }
 
             // Filter by location
             if (location) {
-                query.location = { $regex: location, $options: 'i' };
+                query.location = { $regex: location, $options: "i" };
             }
 
             // Filter by workType
-            if (workType && workType.toLowerCase() == 'any') {
-                workType = '';
-            } 
+            if (workType && workType.toLowerCase() == "any") {
+                workType = "";
+            }
             if (workType) {
-                query.workType = { $regex: workType, $options: 'i' };
+                query.workType = { $regex: workType, $options: "i" };
             }
 
             // Filter by categories
             if (categories.length > 0) {
-                query.category = { $in: categories.map(cat => new RegExp(cat, 'i')) };
+                query.category = {
+                    $in: categories.map((cat) => new RegExp(cat, "i")),
+                };
             }
 
             // Cursor-based pagination
@@ -68,7 +90,7 @@ export const jobResolver = {
             }
 
             const jobs = await JobModel.find(query)
-                .sort({ _id: 1 })
+                .sort({ createdAt: - 1 })
                 .limit(first + 1);
 
             const edges = jobs.map((job) => ({
@@ -89,6 +111,48 @@ export const jobResolver = {
             };
         },
         job: async (_: any, { _id }: { _id: string }) => JobModel.findById(_id),
+        jobsByUser: async (
+            _: any,
+            {
+                first = 10,
+                after,
+            }: { first: number; after: string }, { user }: { user: any }
+        ) => {
+            try {
+                if (!user) {
+                    throw new Error("User not authenticated");
+                }
+                const query: any = { posted_by: user.id };
+                if (after) {
+                    query._id = { $gt: after };
+                }
+
+                const jobs = await JobModel.find(query)
+                    .sort({ _id: 1 })
+                    .limit(first + 1);
+
+                const edges = jobs.map((job) => ({
+                    cursor: job._id.toString(),
+                    node: job,
+                }));
+
+                const hasNextPage = jobs.length > first;
+                const endCursor =
+                    hasNextPage && edges[first - 1]
+                        ? edges[first - 1]?.cursor
+                        : null;
+
+                return {
+                    edges: hasNextPage ? edges.slice(0, -1) : edges,
+                    pageInfo: {
+                        endCursor,
+                        hasNextPage,
+                    },
+                };
+            } catch (error) {
+                throw new Error("Invalid token or user not found!");
+            }
+        },
     },
     Mutation: {
         // parameters are: (parent, args, context)
@@ -113,7 +177,7 @@ export const jobResolver = {
             if (!user) {
                 throw new Error("User not authenticated");
             }
-            console.log('user in addJob resolver', user);
+            console.log("user in addJob resolver", user);
             const newJob = await JobModel.create({
                 title,
                 shortDescription,
@@ -127,7 +191,7 @@ export const jobResolver = {
                 posted_by: user.id,
             });
 
-            console.log('newJob in addJob resolver', newJob);
+            console.log("newJob in addJob resolver", newJob);
             return newJob;
         },
 
