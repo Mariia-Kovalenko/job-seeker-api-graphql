@@ -60,7 +60,6 @@ export const jobResolver = {
             if (search) {
                 query.$or = [
                     { title: { $regex: search, $options: "i" } },
-                    { description: { $regex: search, $options: "i" } },
                 ];
             }
 

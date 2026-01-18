@@ -3,12 +3,12 @@ import { validateRegisterInput } from "../config/userValidation";
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 import { OAuth2Client } from 'google-auth-library';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const WEB_CLIENT_ID = '374361063488-2rfluc9s9upppldosaa1130j8qjcbigq.apps.googleusercontent.com';
+const WEB_CLIENT_ID = process.env.WEB_CLIENT_ID as string;
 
 const client = new OAuth2Client(WEB_CLIENT_ID);
-
-console.log('WEB_CLIENT_ID in userResolver', client);
 
 type User = {
     _id: string;
@@ -40,7 +40,7 @@ export const userResolver = {
             const newUser = await UserModel.create({ email, password: hashedPass, companyName });
 
             // Create and assign token
-            const token = jwt.sign({ id: newUser._id, email: newUser.email }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            const token = jwt.sign({ id: newUser._id, email: newUser.email }, process.env.JWT_SECRET, { expiresIn: '2d' });
             try {
                 const updatedUser = await UserModel.findByIdAndUpdate(newUser._id, {token: token});
                 if (!updatedUser) {
@@ -62,7 +62,7 @@ export const userResolver = {
             }
 
             // create and assign token
-            const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '2d' });
             try {
                 const updatedUser = await UserModel.findByIdAndUpdate(user._id, {token: token});
                 if (!updatedUser) {
@@ -92,7 +92,7 @@ export const userResolver = {
                 throw new Error('User not found!');
             }
 
-            const jwt_token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            const jwt_token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '2d' });
             try {
                 const updatedUser = await UserModel.findByIdAndUpdate(user._id, {token: jwt_token});
                 if (!updatedUser) {
@@ -110,7 +110,7 @@ export const userResolver = {
                 throw new Error('User already exists!');
             }
             const newUser = await UserModel.create({email: email, companyName, password: ''});
-            const jwt_token = jwt.sign({ id: newUser._id, email: newUser.email }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            const jwt_token = jwt.sign({ id: newUser._id, email: newUser.email }, process.env.JWT_SECRET, { expiresIn: '2d' });
             try {
                 return { email: newUser.email, jwt_token, companyName: newUser.companyName };
             } catch (error) {
